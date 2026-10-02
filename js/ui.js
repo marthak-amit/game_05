@@ -32,6 +32,7 @@
   function refreshMenu() {
     ensureMissions();
     document.querySelectorAll('.coinsV').forEach(e => e.textContent = SS.fmt(save.coins));
+    $('lvlN').textContent = save.level; $('lvlBar').style.width = (100 * save.xp / SS.xpNeed(save.level)) + '%';
     $('menuBest').textContent = SS.fmt(save.best);
     const n = missionsReady(); $('bMis').textContent = n; show('bMis', n > 0);
     show('bDaily', dailyReady()); show('bWheel', wheelReady());
@@ -148,6 +149,7 @@
     if (h.score !== hud.s) { hud.s = h.score; $('hScore').textContent = h.score; }
     if (h.gems !== hud.g) { hud.g = h.gems; $('hGems').textContent = h.gems; }
     $('hBiome').textContent = h.biome;
+    show('hProg', h.hasBest); if (h.hasBest) { $('hProgI').style.width = (h.toBest * 100) + '%'; $('hProgT').textContent = h.bestLeft > 0 ? h.bestLeft + 'm to BEST' : 'NEW RECORD!'; }
     const ch = h.chain >= 2 ? 'x' + h.mult.toFixed(1) : ''; if (ch !== hud.c) { hud.c = ch; show('hChain', !!ch); $('hChainN').textContent = ch; }
     const pw = (h.shield ? '<div>🛡️ Shield</div>' : '') + (h.magnet > 0 ? `<div>🧲 ${Math.ceil(h.magnet)}s</div>` : '') + (h.boost > 0 ? `<div>⚡ x2 ${Math.ceil(h.boost)}s</div>` : '');
     if ($('hPow').innerHTML !== pw) $('hPow').innerHTML = pw;
@@ -179,19 +181,41 @@
   function gameOver() {
     const s = lastSummary, newBest = s.score > save.best;
     if (newBest) save.best = s.score;
+    const oldBestDist = save.bestDist; if (s.dist > save.bestDist) save.bestDist = s.dist;
     save.deaths++; save.gems += s.run.gems;
     const coins = Math.round((s.run.coins + Math.floor(s.dist / 50)) * (save.vip ? SS.CFG.vipCoinMult : 1)); coinsGiven = coins;
     SS.addCoins(coins); applyRun(s.run, s.dist); SS.track('run_end', { score: s.score, dist: s.dist });
-    $('ovScore').textContent = s.score; $('ovDist').textContent = s.dist; $('ovGems').textContent = s.run.gems; $('ovBest').textContent = save.best; $('ovCoins').textContent = coins;
+    const xpGain = Math.round(s.score / 2) + 5, xpBefore = save.xp, lvBefore = save.level, ups = SS.addXp(xpGain);
+    countUp($('ovScore'), s.score, 700);
+    $('ovLvl').textContent = lvBefore; $('ovXp').style.transition = 'none'; $('ovXp').style.width = (100 * xpBefore / SS.xpNeed(lvBefore)) + '%'; $('ovXpT').textContent = '+' + xpGain + ' XP';
+    setTimeout(() => { $('ovXp').style.transition = ''; if (ups.length) { $('ovXp').style.width = '100%'; setTimeout(() => { $('ovLvl').textContent = save.level; $('ovXp').style.transition = 'none'; $('ovXp').style.width = (100 * save.xp / SS.xpNeed(save.level)) + '%'; levelUp(ups); }, 950); } else $('ovXp').style.width = (100 * save.xp / SS.xpNeed(save.level)) + '%'; }, 900);
+    $('ovGoal').innerHTML = nextGoal(s, newBest);
+    $('ovDist').textContent = s.dist; $('ovGems').textContent = s.run.gems; $('ovBest').textContent = save.best; $('ovCoins').textContent = coins;
     show('ovNew', newBest); show('btnDouble', coins >= 5); $('btnDouble').disabled = false; $('btnDouble').textContent = `🎬 Double Coins (+${coins})`;
     show('hud', false);
     SS.Ads.maybeInterstitial(() => { show('s-over', true); if (newBest) SS.Sfx.win(); });
+  }
+  function countUp(el, to, ms) { const t0 = performance.now(); (function f(t) { const k = Math.min(1, (t - t0) / ms); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t0); }
+  function levelUp(ups) {
+    const d = document.createElement('div'); d.className = 'lvlup';
+    d.innerHTML = `<h1>LEVEL ${ups[ups.length - 1]}!</h1><p>+${ups.reduce((a, l) => a + 100 * l, 0)} 🪙 bonus</p><button class="btn play small">AWESOME</button>`;
+    document.body.appendChild(d); SS.Sfx.win(); SS.haptic([20, 30, 40]); d.querySelector('button').onclick = () => { d.remove(); refreshMenu(); };
+  }
+  function nextGoal(s, newBest) {
+    const out = [];
+    if (!newBest && save.best > 0 && s.score < save.best && s.score >= save.best * 0.6) out.push(`🔥 So close! Only <b>${save.best - s.score}</b> from your best`);
+    const m = save.missions.list.filter(x => !x.done && x.p < x.t).sort((a, b) => b.p / b.t - a.p / a.t)[0];
+    if (m) out.push(`🎯 ${m.text.replace('{t}', m.t)} — <b>${m.p}/${m.t}</b>`);
+    const sk = SS.SKINS.filter(x => x.unlock === 'coins' && !save.owned.includes(x.id)).sort((a, b) => a.price - b.price)[0];
+    if (sk) out.push(`🎨 ${sk.name} skin: <b>${Math.min(100, Math.floor(100 * (save.coins + coinsGiven) / sk.price))}%</b>`);
+    return out[0] && out.slice(0, 2).join('<br>');
   }
   Game.onDeath = afterDeath;
   $('btnDouble').onclick = () => SS.Ads.rewarded('double', () => { SS.addCoins(coinsGiven); SS.Sfx.coin(); toast('Coins doubled!'); $('btnDouble').disabled = true; $('ovCoins').textContent = coinsGiven * 2; });
   $('btnRetry').onclick = startRun; $('btnHome').onclick = toMenu;
   $('btnShare').onclick = () => { const t = `I scored ${lastSummary.score} in Sling Sprite! Can you beat me?`; if (navigator.share) navigator.share({ title: 'Sling Sprite', text: t, url: location.href }).catch(() => {}); else toast('Score copied!'), navigator.clipboard && navigator.clipboard.writeText(t); };
   $('btnPlay').onclick = startRun;
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.btn,.dockbtn,.roundbtn')) SS.Sfx.click(); });
   $('btnPause').onclick = e => { e.stopPropagation(); Game.pause(true); show('s-pause', true); };
   $('btnResume').onclick = () => { show('s-pause', false); Game.pause(false); };
   $('btnQuit').onclick = () => { show('s-pause', false); Game.pause(false); toMenu(); };

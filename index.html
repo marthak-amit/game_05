@@ -19,13 +19,14 @@
     <div class="hud-score"><span id="hScore">0</span><small id="hBiome"></small></div>
     <div class="hud-right"><div class="pill">💎 <span id="hGems">0</span></div><button id="btnPause" class="roundbtn">❚❚</button></div>
   </div>
+  <div class="prog" id="hProg"><i id="hProgI"></i><span id="hProgT"></span></div>
   <div id="hChain" class="chain hidden">CHAIN <b id="hChainN">x1.0</b></div>
   <div id="hPow" class="pows"></div>
 </div>
 
 <div id="screens">
   <section id="s-menu" class="screen">
-    <div class="topbar"><div class="pill big">🪙 <span class="coinsV">0</span></div><button class="roundbtn" data-open="settings">⚙️</button></div>
+    <div class="topbar"><div class="pill big">🪙 <span class="coinsV">0</span></div><div class="lvl" id="lvl"><b id="lvlN">1</b><div class="bar"><i id="lvlBar"></i></div></div><button class="roundbtn" data-open="settings">⚙️</button></div>
     <div class="logo"><span>SLING</span><span class="l2">SPRITE</span></div>
     <div class="center-sprite"><canvas id="menuSprite" width="140" height="140"></canvas></div>
     <button id="btnPlay" class="btn play">TAP TO PLAY</button>
@@ -45,6 +46,8 @@
       <div id="ovNew" class="newbest hidden">NEW BEST!</div>
       <div class="ov-score"><span id="ovScore">0</span><small>SCORE</small></div>
       <div class="ov-row"><div>📏 <b id="ovDist">0</b>m</div><div>💎 <b id="ovGems">0</b></div><div>🏆 <b id="ovBest">0</b></div></div>
+      <div class="xpwrap"><div class="xprow"><b>LV <span id="ovLvl">1</span></b><span id="ovXpT"></span></div><div class="bar"><i id="ovXp"></i></div></div>
+      <div class="goal" id="ovGoal"></div>
       <div class="ov-coins">+<b id="ovCoins">0</b> 🪙</div>
       <button class="btn green" id="btnDouble">🎬 Double Coins</button>
       <button class="btn play small" id="btnRetry">PLAY AGAIN</button>

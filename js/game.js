@@ -20,7 +20,7 @@
 
   const Game = SS.Game = { state: 'menu', onDeath: null, onHud: null, stats: null };
   let p, cam, anchors, gems, hazards, powers, parts, texts, trail, genX, genY, aid, time, shake, slow, bonus;
-  let run, chainT, hitStop;
+  let run, chainT, hitStop, flash = 0, bestX = 0;
   const clouds = Array.from({ length: 9 }, () => ({ x: rand(0, 1400), y: rand(40, 520), s: rand(0.6, 1.5), v: rand(0.05, 0.2) }));
   const starsArr = Array.from({ length: 70 }, () => ({ x: rand(0, 1), y: rand(0, 0.7), r: rand(0.6, 2) }));
 
@@ -32,6 +32,7 @@
     cam = { x: -p.x * 0 - 200, y: CEN_Y - viewH / 2 };
     anchors = []; gems = []; hazards = []; powers = []; parts = []; texts = []; trail = [];
     aid = 0; genX = 60; genY = 260;
+    bestX = SS.save.bestDist * 20;
     run = { gems: 0, coins: 0, chain: 0, maxChain: 0, perfect: 0, near: 0, power: 0, revived: false, dist: 0, tut: !SS.save.tutorial };
     anchors.push({ x: 120, y: 250, id: ++aid, pulse: 0 }); genX = 120;
     const b = SS.save.boost;
@@ -103,7 +104,7 @@
     if (ang > 22 && ang < 68 && sp > 400) {
       run.perfect++; bonus += 10; run.chain++; run.maxChain = Math.max(run.maxChain, run.chain);
       p.vx *= 1.08; p.vy *= 1.08;
-      text(p.x, p.y - 40, 'PERFECT +10', '#fff176'); SS.Sfx.perfect(); SS.haptic(15);
+      flash = 0.35; text(p.x, p.y - 40, 'PERFECT +10', '#fff176'); SS.Sfx.perfect(); SS.haptic(15);
       burst(p.x, p.y, 14, '#fff176', 260);
     }
   };
@@ -199,7 +200,7 @@
     if (p.y + PR > lavaY(p.x) + 8 && !p.dead) { burst(p.x, LAVA_Y, 18, '#fff', 300); die('lava'); }
     if (p.x < cam.x - 30 && !p.dead) die('behind');
     if (p.y < -450) { p.vy = Math.abs(p.vy) * 0.3; p.y = -450; }
-    if (Game.onHud) Game.onHud({ score: score(), gems: run.gems, chain: run.chain, mult: mult() * (p.boost > 0 ? 2 : 1), shield: p.shield, magnet: p.magnet, boost: p.boost, biome: biomeName(), tut: run.tut, hold: !!p.a });
+    if (Game.onHud) Game.onHud({ score: score(), gems: run.gems, chain: run.chain, mult: mult() * (p.boost > 0 ? 2 : 1), shield: p.shield, magnet: p.magnet, boost: p.boost, biome: biomeName(), toBest: bestX > 0 ? Math.min(1, p.maxX / bestX) : 0, hasBest: bestX > 0, bestLeft: Math.max(0, Math.ceil((bestX - p.maxX) / 20)), tut: run.tut, hold: !!p.a });
   }
   const lavaY = x => LAVA_Y + Math.sin(x * 0.02 + time * 2) * 6;
   const biomeName = () => BIO[(Math.floor((p.maxX || 0) / 20 / BIOME_LEN)) % BIO.length].name;
@@ -276,6 +277,11 @@
   Game.drawBlob = drawBlob;
 
   function drawWorld() {
+    if (bestX > 0 && bestX > cam.x - 60 && bestX < cam.x + viewW + 60) {
+      ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 4; ctx.setLineDash([14, 12]); ctx.beginPath(); ctx.moveTo(bestX, cam.y); ctx.lineTo(bestX, LAVA_Y); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = '#ef4444'; ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.rect(bestX, cam.y + 330, 96, 38); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = '900 22px ui-rounded, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('BEST', bestX + 48, cam.y + 358);
+    }
     // anchors
     const cand = Game.state === 'play' && !p.a ? pickAnchor() : null;
     for (const a of anchors) {
@@ -318,9 +324,9 @@
     // trail
     const sk = skin();
     for (let i = 0; i < trail.length; i++) {
-      const t = trail[i], k = i / trail.length; t.life -= 0.016;
+      const t = trail[i], k = i / trail.length;
       ctx.fillStyle = sk.t === 'rainbow' ? 'hsl(' + ((time * 200 + i * 12) % 360) + ',95%,65%)' : sk.t;
-      ctx.globalAlpha = k * 0.6; ctx.beginPath(); ctx.arc(t.x, t.y, PR * k * 0.9, 0, 6.28); ctx.fill();
+      ctx.globalAlpha = k * 0.6; ctx.beginPath(); ctx.arc(t.x, t.y, PR * 1.2 * k, 0, 6.28); ctx.fill();
     }
     ctx.globalAlpha = 1;
     // rope
@@ -332,7 +338,7 @@
     // player
     if (!p.dead && Game.state !== 'menu' && (p.inv <= 0 || Math.floor(time * 20) % 2)) {
       if (p.magnet > 0) { ctx.strokeStyle = 'rgba(252,165,165,.5)'; ctx.lineWidth = 3; ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.arc(p.x, p.y, 120 + Math.sin(time * 8) * 6, 0, 6.28); ctx.stroke(); ctx.setLineDash([]); }
-      drawBlob(ctx, p.x, p.y, PR, sk, { vx: p.vx, vy: p.vy, sq: p.sq, blink: p.blink });
+      drawBlob(ctx, p.x, p.y, PR * 1.3, sk, { vx: p.vx, vy: p.vy, sq: p.sq, blink: p.blink });
       if (p.shield > 0) { ctx.strokeStyle = 'rgba(125,211,252,.9)'; ctx.fillStyle = 'rgba(125,211,252,.25)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(p.x, p.y, PR + 11 + Math.sin(time * 8) * 1.5, 0, 6.28); ctx.fill(); ctx.stroke(); }
     }
     for (const q of parts) { ctx.globalAlpha = clamp(q.life / q.max, 0, 1); ctx.fillStyle = q.col; ctx.beginPath(); ctx.arc(q.x, q.y, q.size, 0, 6.28); ctx.fill(); }
@@ -351,6 +357,10 @@
     ctx.translate(-cam.x + sx, -cam.y + sy);
     drawWorld(); ctx.restore();
     ctx.save(); ctx.translate(sx, sy); drawSea(bi); ctx.restore();
+    // speed lines + flash
+    const spd = Game.state === 'play' ? Math.hypot(p.vx, p.vy) : 0;
+    if (spd > 650) { ctx.strokeStyle = 'rgba(255,255,255,' + Math.min(0.35, (spd - 650) / 1500) + ')'; ctx.lineWidth = 3; for (let i = 0; i < 9; i++) { const y = ((i * 197 + time * 900) % viewH), x = ((i * 331 + time * 1600) % (viewW + 200)); ctx.beginPath(); ctx.moveTo(viewW - x, y); ctx.lineTo(viewW - x + 90, y); ctx.stroke(); } }
+    if (flash > 0) { ctx.fillStyle = 'rgba(255,255,255,' + flash + ')'; ctx.fillRect(0, 0, viewW, viewH); flash = Math.max(0, flash - 0.03); }
     // hint
     if (Game.state === 'play' && run.tut) {
       ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 4; ctx.font = '900 30px ui-rounded, system-ui, sans-serif'; ctx.textAlign = 'center';
