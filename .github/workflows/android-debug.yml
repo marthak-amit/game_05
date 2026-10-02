@@ -1,5 +1,5 @@
 name: Android debug APK (test ads)
-on: { workflow_dispatch: {}, push: { branches: [main] } }
+on: { workflow_dispatch: {}, push: { branches: [main, 'claude/**'] } }
 jobs:
   apk:
     runs-on: ubuntu-latest
