@@ -85,3 +85,4 @@ button{font-family:inherit;cursor:pointer;border:0}
 .mockad{position:fixed;inset:0;z-index:100;background:#0f172a;display:flex;align-items:center;justify-content:center;color:#fff;text-align:center}
 .mockad-t{font-size:64px;font-weight:900;margin-top:10px}
 .big-note{text-align:center;font-weight:800;color:#475569;margin:8px 0}
+body.native #s-menu{padding-bottom:calc(70px + env(safe-area-inset-bottom))}

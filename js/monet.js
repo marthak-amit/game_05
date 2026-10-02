@@ -4,14 +4,29 @@
 (function () {
   const save = SS.save;
   const native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  SS.native = native;
   const AdMob = native && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob;
 
-  // Replace with YOUR AdMob unit ids when the account is ready. (These are Google's public TEST ids.)
-  const IDS = {
+  // TEST_MODE = true -> Google's public TEST ad units (safe, no policy risk).
+  // When your AdMob account is ready: set TEST_MODE=false and fill the REAL ids below.
+  const TEST_MODE = true;
+  const TEST = {
     interstitial: 'ca-app-pub-3940256099942544/1033173712',
     rewarded: 'ca-app-pub-3940256099942544/5224354917',
     banner: 'ca-app-pub-3940256099942544/6300978111',
   };
+  const REAL = { interstitial: '', rewarded: '', banner: '' };
+  const IDS = TEST_MODE ? TEST : REAL;
+  let admobReady = false;
+  if (AdMob) {
+    (async () => {
+      try {
+        try { const c = await AdMob.requestConsentInfo(); if (c.isConsentFormAvailable && c.status === 'REQUIRED') await AdMob.showConsentForm(); } catch (e) {}
+        await AdMob.initialize({ initializeForTesting: TEST_MODE });
+        admobReady = true;
+      } catch (e) { console.warn('AdMob init failed', e); }
+    })();
+  }
 
   function mockAd(kind, done) {
     const el = document.createElement('div'); el.className = 'mockad';
@@ -36,22 +51,23 @@
         save.runsSinceInter >= SS.CFG.interstitialEveryNRuns && Date.now() - save.lastInter > SS.CFG.interstitialMinGapMs;
       if (!ok) { SS.persist(); return cb(); }
       save.runsSinceInter = 0; save.lastInter = Date.now(); SS.persist(); SS.track('ad_interstitial');
-      if (AdMob) {
-        AdMob.prepareInterstitial({ adId: IDS.interstitial }).then(() => AdMob.showInterstitial()).then(() => cb()).catch(() => cb());
+      if (AdMob && admobReady) {
+        AdMob.prepareInterstitial({ adId: IDS.interstitial, isTesting: TEST_MODE }).then(() => AdMob.showInterstitial()).then(() => cb()).catch(() => cb());
       } else mockAd('interstitial', () => cb());
     },
     // Rewarded: onReward fires only if the user earned it; onFail otherwise.
     rewarded(placement, onReward, onFail) {
       SS.track('ad_rewarded_request', placement);
-      if (AdMob) {
+      if (AdMob && admobReady) {
         let rewarded = false;
         AdMob.addListener('onRewardedVideoAdReward', () => { rewarded = true; });
-        AdMob.prepareRewardVideoAd({ adId: IDS.rewarded }).then(() => AdMob.showRewardVideoAd())
-          .then(() => (rewarded ? onReward() : onFail && onFail())).catch(() => onFail && onFail());
+        AdMob.prepareRewardVideoAd({ adId: IDS.rewarded, isTesting: TEST_MODE })
+          .then(() => AdMob.showRewardVideoAd())
+          .then(r => (rewarded || r ? onReward() : onFail && onFail())).catch(() => onFail && onFail());
       } else mockAd('rewarded', ok => { if (ok) { SS.track('ad_rewarded_done', placement); onReward(); } else onFail && onFail(); });
     },
-    showBanner() { if (AdMob && !noAds()) AdMob.showBanner({ adId: IDS.banner, position: 'BOTTOM_CENTER' }); },
-    hideBanner() { if (AdMob) AdMob.hideBanner(); },
+    showBanner() { if (AdMob && admobReady && !noAds()) AdMob.showBanner({ adId: IDS.banner, adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', isTesting: TEST_MODE }).catch(() => {}); },
+    hideBanner() { if (AdMob && admobReady) AdMob.hideBanner().catch(() => {}); },
   };
 
   // ---------- IAP ----------

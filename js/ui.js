@@ -156,10 +156,10 @@
   // ----- flow -----
   let reviveTimer, lastSummary, coinsGiven;
   function startRun() {
-    SS.Sfx.init(); show('s-menu', false); show('s-over', false); show('s-revive', false); show('hud', true);
+    SS.Sfx.init(); SS.Ads.hideBanner(); show('s-menu', false); show('s-over', false); show('s-revive', false); show('hud', true);
     hud.s = hud.g = -1; Game.start();
   }
-  function toMenu() { show('s-over', false); show('hud', false); show('s-menu', true); Game.toMenu(); refreshMenu(); }
+  function toMenu() { show('s-over', false); show('hud', false); show('s-menu', true); Game.toMenu(); refreshMenu(); SS.Ads.showBanner(); }
   function afterDeath(sum) {
     lastSummary = sum; SS.persist();
     if (!sum.run.revived && sum.dist >= SS.CFG.reviveMinDist) offerRevive(); else gameOver();

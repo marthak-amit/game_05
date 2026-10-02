@@ -1,0 +1,7 @@
+{
+  "appId": "com.slingsprite.game",
+  "appName": "Sling Sprite",
+  "webDir": "www",
+  "backgroundColor": "#4cc9f0",
+  "android": { "allowMixedContent": false }
+}

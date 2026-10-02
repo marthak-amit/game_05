@@ -100,7 +100,7 @@
     if (Game.state !== 'play' || p.dead || !p.a) return;
     const sp = Math.hypot(p.vx, p.vy), ang = Math.atan2(-p.vy, p.vx) * 57.3;
     p.lastRel = p.a; p.relT = 0; p.a = null; SS.Sfx.release();
-    if (ang > 22 && ang < 68 && sp > 520) {
+    if (ang > 22 && ang < 68 && sp > 400) {
       run.perfect++; bonus += 10; run.chain++; run.maxChain = Math.max(run.maxChain, run.chain);
       p.vx *= 1.08; p.vy *= 1.08;
       text(p.x, p.y - 40, 'PERFECT +10', '#fff176'); SS.Sfx.perfect(); SS.haptic(15);
@@ -156,7 +156,7 @@
     p.maxX = Math.max(p.maxX || 0, p.x);
     if (!p.a && p.air > 1.6 && run.chain > 0) { run.chain = 0; text(p.x, p.y - 50, 'chain lost', '#fff'); p.air = -99; }
     // camera
-    const m = p.maxX / 20, auto = 85 + Math.min(130, m * 0.09);
+    const m = p.maxX / 20, auto = 50 + Math.min(150, m * 0.1);
     const target = p.x - viewW * 0.3;
     cam.x = Math.max(cam.x + auto * dt, cam.x + (target - cam.x) * Math.min(1, dt * 6));
     cam.y = CEN_Y - viewH / 2 + clamp((p.y - 450) * 0.12, -60, 60);
@@ -197,7 +197,7 @@
     }
     // lava / left edge
     if (p.y + PR > lavaY(p.x) + 8 && !p.dead) { burst(p.x, LAVA_Y, 18, '#fff', 300); die('lava'); }
-    if (p.x < cam.x - 10 && !p.dead) die('behind');
+    if (p.x < cam.x - 30 && !p.dead) die('behind');
     if (p.y < -450) { p.vy = Math.abs(p.vy) * 0.3; p.y = -450; }
     if (Game.onHud) Game.onHud({ score: score(), gems: run.gems, chain: run.chain, mult: mult() * (p.boost > 0 ? 2 : 1), shield: p.shield, magnet: p.magnet, boost: p.boost, biome: biomeName(), tut: run.tut, hold: !!p.a });
   }
@@ -392,4 +392,6 @@
   Game.boot = function () { reset(); Game.state = 'menu'; requestAnimationFrame(frame); };
   Game.addBonusCoins = n => { run.coins += n; };
   Game.runInfo = () => run;
+  Game._dbg = () => ({ a: !!p.a, ang: Math.atan2(-p.vy, p.vx) * 57.3, sp: Math.hypot(p.vx, p.vy) });
+  Game._p = () => p; Game._cam = () => cam;
 })();

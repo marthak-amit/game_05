@@ -27,6 +27,10 @@ Controls: touch/mouse hold & release, or Space.
 
 Reaching Rs10 L/month realistically needs roughly 100-150k DAU (rewarded-ad ARPDAU about Rs2-3 plus ~2% IAP payers). The game provides the retention engine; growth comes from UA/creative testing and live-ops (events, new skins every 2 weeks).
 
+## Test ads
+`js/monet.js` has `TEST_MODE = true`: in the browser you get a fake ad overlay; in the Android build (Capacitor + AdMob) you get Google's official **test** ad units (interstitial, rewarded, banner on menu). Run the GitHub Action *Android debug APK* (or `npm i && npm run build:web && npx cap add android && npx cap sync`) to get an installable test APK. Not yet verified on a physical device.
+When your AdMob account is ready: set `TEST_MODE=false`, fill `REAL` ids in `js/monet.js`, and replace the test App ID in the manifest.
+
 ## Going native (when accounts are ready)
 ```
 npm i @capacitor/core @capacitor/cli @capacitor/android @capacitor-community/admob
