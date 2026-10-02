@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#4cc9f0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Sling Sprite</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hidden">
+  <div class="hud-top">
+    <div class="hud-score"><span id="hScore">0</span><small id="hBiome"></small></div>
+    <div class="hud-right"><div class="pill">💎 <span id="hGems">0</span></div><button id="btnPause" class="roundbtn">❚❚</button></div>
+  </div>
+  <div id="hChain" class="chain hidden">CHAIN <b id="hChainN">x1.0</b></div>
+  <div id="hPow" class="pows"></div>
+</div>
+
+<div id="screens">
+  <section id="s-menu" class="screen">
+    <div class="topbar"><div class="pill big">🪙 <span class="coinsV">0</span></div><button class="roundbtn" data-open="settings">⚙️</button></div>
+    <div class="logo"><span>SLING</span><span class="l2">SPRITE</span></div>
+    <div class="center-sprite"><canvas id="menuSprite" width="140" height="140"></canvas></div>
+    <button id="btnPlay" class="btn play">TAP TO PLAY</button>
+    <div class="best">BEST <b id="menuBest">0</b> m</div>
+    <div class="dock">
+      <button class="dockbtn" data-open="skins"><i>🎨</i>Skins</button>
+      <button class="dockbtn" data-open="missions"><i>🎯</i>Missions<em class="badge hidden" id="bMis"></em></button>
+      <button class="dockbtn" data-open="daily"><i>🎁</i>Daily<em class="badge hidden" id="bDaily">!</em></button>
+      <button class="dockbtn" data-open="wheel"><i>🎡</i>Spin<em class="badge hidden" id="bWheel">!</em></button>
+      <button class="dockbtn gold" data-open="shop"><i>🛒</i>Shop</button>
+    </div>
+  </section>
+
+  <section id="s-over" class="screen hidden">
+    <div class="card over">
+      <h2 id="ovTitle">GAME OVER</h2>
+      <div id="ovNew" class="newbest hidden">NEW BEST!</div>
+      <div class="ov-score"><span id="ovScore">0</span><small>SCORE</small></div>
+      <div class="ov-row"><div>📏 <b id="ovDist">0</b>m</div><div>💎 <b id="ovGems">0</b></div><div>🏆 <b id="ovBest">0</b></div></div>
+      <div class="ov-coins">+<b id="ovCoins">0</b> 🪙</div>
+      <button class="btn green" id="btnDouble">🎬 Double Coins</button>
+      <button class="btn play small" id="btnRetry">PLAY AGAIN</button>
+      <div class="row"><button class="btn ghost" id="btnHome">Home</button><button class="btn ghost" id="btnShare">Share</button></div>
+    </div>
+  </section>
+
+  <section id="s-revive" class="screen hidden">
+    <div class="card">
+      <h2>Continue?</h2>
+      <div class="ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" class="ring-bg"/><circle id="ringFg" cx="50" cy="50" r="44" class="ring-fg"/></svg><b id="reviveN">5</b></div>
+      <button class="btn green" id="btnRevive">🎬 Revive (free)</button>
+      <button class="btn ghost" id="btnNoRevive">No thanks</button>
+    </div>
+  </section>
+
+  <section id="s-pause" class="screen hidden"><div class="card"><h2>Paused</h2>
+    <button class="btn play small" id="btnResume">RESUME</button><button class="btn ghost" id="btnQuit">Quit run</button></div></section>
+</div>
+
+<div id="modal" class="modal hidden"><div class="sheet"><div class="sheet-h"><h3 id="mTitle"></h3><button class="roundbtn" id="mClose">✕</button></div><div id="mBody" class="sheet-b"></div></div></div>
+<div id="toast" class="toast hidden"></div>
+
+<script src="js/data.js"></script>
+<script src="js/save.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/monet.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

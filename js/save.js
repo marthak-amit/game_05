@@ -1,0 +1,18 @@
+// Persistent save (localStorage) + tiny helpers.
+(function () {
+  const KEY = 'slingsprite.v1';
+  const def = () => ({
+    coins: 0, best: 0, gems: 0, runs: 0, deaths: 0, skin: 'pip', owned: ['pip'],
+    adsRemoved: false, vip: false, daily: { last: '', streak: 0 }, wheelNext: 0,
+    missions: { date: '', list: [] }, settings: { sound: true, music: true, haptic: true },
+    tutorial: false, boost: null, adWatch: {}, lastInter: 0, runsSinceInter: 0,
+  });
+  let data;
+  try { data = Object.assign(def(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { data = def(); }
+  SS.save = data;
+  SS.persist = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} };
+  SS.today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
+  SS.addCoins = n => { data.coins += n; SS.persist(); };
+  SS.track = (ev, props) => { /* hook up Firebase / GameAnalytics here */ if (SS.debug) console.log('[track]', ev, props || ''); };
+  SS.fmt = n => Math.floor(n).toLocaleString('en-IN');
+})();

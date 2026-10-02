@@ -1,0 +1,11 @@
+{
+  "name": "Sling Sprite",
+  "short_name": "Sling Sprite",
+  "description": "One-touch grapple-swing arcade. Hold to swing, release to fly!",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#7dd3fc",
+  "theme_color": "#7dd3fc",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
